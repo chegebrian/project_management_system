@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Payments - Real Estate Manager{% endblock %}
+{% block content %}
+<h2 class="mb-4">Payments</h2>
+
+<div class="card mb-4">
+  <div class="card-header">Record Rent Payment (Manual)</div>
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      {{ form.hidden_tag() }}
+      <div class="col-md-4">
+        {{ form.tenant_id.label(class="form-label") }}
+        {{ form.tenant_id(class="form-select") }}
+      </div>
+      <div class="col-md-4">
+        {{ form.unit_id.label(class="form-label") }}
+        {{ form.unit_id(class="form-select") }}
+      </div>
+      <div class="col-md-2">
+        {{ form.amount.label(class="form-label") }}
+        {{ form.amount(class="form-control") }}
+      </div>
+      <div class="col-md-1">
+        {{ form.month.label(class="form-label") }}
+        {{ form.month(class="form-control") }}
+      </div>
+      <div class="col-md-1">
+        {{ form.year.label(class="form-label") }}
+        {{ form.year(class="form-control") }}
+      </div>
+      <div class="col-md-12">
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+      {% for field in [form.tenant_id, form.unit_id, form.amount, form.month, form.year] %}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      {% endfor %}
+    </form>
+  </div>
+</div>
+
+{% if mpesa_configured %}
+<div class="card mb-4 border-success">
+  <div class="card-header bg-success text-white">Pay via M-Pesa (Lipa Na M-Pesa)</div>
+  <div class="card-body">
+    <p class="text-muted small">A push will be sent to the tenant’s phone to enter M-Pesa PIN. Use Kenyan number (e.g. 254712345678 or 0712345678).</p>
+    <form id="mpesa-form" class="row g-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-3">
+        <label class="form-label">{{ mpesa_form.tenant_id.label.text }}</label>
+        <select name="tenant_id" class="form-select" required>
+          {% for val, label in mpesa_form.tenant_id.choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">{{ mpesa_form.unit_id.label.text }}</label>
+        <select name="unit_id" class="form-select" required>
+          {% for val, label in mpesa_form.unit_id.choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">{{ mpesa_form.amount.label.text }}</label>
+        <input type="number" name="amount" class="form-control" step="0.01" min="1" required placeholder="KES">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label">{{ mpesa_form.month.label.text }}</label>
+        <input type="number" name="month" class="form-control" min="1" max="12" required>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label">{{ mpesa_form.year.label.text }}</label>
+        <input type="number" name="year" class="form-control" min="2020" max="2100" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">{{ mpesa_form.phone.label.text }}</label>
+        <input type="text" name="phone" class="form-control" placeholder="254712345678" required>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-success" id="mpesa-btn">Request M-Pesa Payment</button>
+      </div>
+      <div class="col-12" id="mpesa-message" style="display:none;"></div>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+  <strong>M-Pesa:</strong> Set <code>MPESA_CONSUMER_KEY</code>, <code>MPESA_CONSUMER_SECRET</code>, <code>MPESA_SHORTCODE</code>, <code>MPESA_PASSKEY</code>, and <code>MPESA_CALLBACK_BASE_URL</code> in your environment to enable M-Pesa payments.
+</div>
+{% endif %}
+
+<h4>Payment History</h4>
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Tenant</th>
+        <th>Unit / Property</th>
+        <th>Month/Year</th>
+        <th>Amount</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pay in payments %}
+      <tr>
+        <td>{{ pay.payment_date.strftime('%Y-%m-%d') }}</td>
+        <td>{{ pay.tenant.full_name }}</td>
+        <td>{{ pay.unit.name }} ({{ pay.property.name }})</td>
+        <td>{{ pay.month }}/{{ pay.year }}</td>
+        <td>KSH{{ '%.2f'|format(pay.amount) }}</td>
+        <td>
+          {% if pay.payment_status == 'pending' %}
+            <span class="badge bg-warning">M-Pesa Pending</span>
+          {% elif pay.payment_status == 'failed' %}
+            <span class="badge bg-danger">Failed</span>
+          {% else %}
+            {% if pay.mpesa_receipt_number %}
+              <span class="badge bg-success">M-Pesa {{ pay.mpesa_receipt_number }}</span>
+            {% else %}
+              <span class="badge bg-secondary">Recorded</span>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-muted">No payments recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if mpesa_configured %}
+<script>
+(function() {
+  var form = document.getElementById('mpesa-form');
+  var btn = document.getElementById('mpesa-btn');
+  var msg = document.getElementById('mpesa-message');
+  if (!form || !btn || !msg) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    btn.disabled = true;
+    msg.style.display = 'block';
+    msg.className = 'col-12 alert alert-secondary';
+    msg.textContent = 'Sending request…';
+
+    var fd = new FormData(form);
+    var body = {
+      tenant_id: parseInt(fd.get('tenant_id'), 10),
+      unit_id: parseInt(fd.get('unit_id'), 10),
+      amount: parseFloat(fd.get('amount')),
+      month: parseInt(fd.get('month'), 10),
+      year: parseInt(fd.get('year'), 10),
+      phone: fd.get('phone')
+    };
+
+    fetch('{{ url_for("mpesa_initiate") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+      },
+      body: JSON.stringify(body)
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(o) {
+      if (o.ok && o.data.success) {
+        msg.className = 'col-12 alert alert-success';
+        msg.textContent = o.data.message || 'Check the tenant’s phone to enter M-Pesa PIN. Payment will appear here when completed.';
+      } else {
+        msg.className = 'col-12 alert alert-danger';
+        msg.textContent = o.data.error || 'Request failed.';
+      }
+    })
+    .catch(function() {
+      msg.className = 'col-12 alert alert-danger';
+      msg.textContent = 'Network error. Try again.';
+    })
+    .finally(function() { btn.disabled = false; });
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
