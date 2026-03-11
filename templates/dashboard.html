@@ -1,0 +1,62 @@
+{% extends "base.html" %} {% block title %}Dashboard - Real Estate Manager{%
+endblock %} {% block content %}
+<h2 class="mb-4">Dashboard</h2>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-bg-primary h-100">
+      <div class="card-body">
+        <h6 class="card-title text-uppercase">Total Properties</h6>
+        <h2 class="card-text">{{ total_properties }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-bg-success h-100">
+      <div class="card-body">
+        <h6 class="card-title text-uppercase">Total Tenants</h6>
+        <h2 class="card-text">{{ total_tenants }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-bg-info h-100">
+      <div class="card-body">
+        <h6 class="card-title text-uppercase">Occupied Units</h6>
+        <h2 class="card-text">{{ occupied_units }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-bg-secondary h-100">
+      <div class="card-body">
+        <h6 class="card-title text-uppercase">Vacant Units</h6>
+        <h2 class="card-text">{{ vacant_units }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title text-uppercase">Monthly Rent Collected</h6>
+        <h2 class="card-text">
+          KSH{{ '%.2f'|format(monthly_rent_collected) }}
+        </h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title text-uppercase">
+          Estimated Unpaid Rent (This Month)
+        </h6>
+        <h2 class="card-text text-danger">
+          KSH{{ '%.2f'|format(unpaid_rent) }}
+        </h2>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
