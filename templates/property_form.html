@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block title %}{{ title }} - Real Estate Manager{%
+endblock %} {% block content %}
+<h2 class="mb-4">{{ title }}</h2>
+<form method="post">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.name.label(class="form-label") }} {{ form.name(class="form-control")
+    }} {% for error in form.name.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.location.label(class="form-label") }} {{
+    form.location(class="form-control") }} {% for error in form.location.errors
+    %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.property_type.label(class="form-label") }} {{
+    form.property_type(class="form-select") }}
+  </div>
+  <div class="mb-3">
+    {{ form.num_units.label(class="form-label") }} {{
+    form.num_units(class="form-control") }} {% for error in
+    form.num_units.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.rent_price.label(class="form-label") }} {{
+    form.rent_price(class="form-control") }} {% for error in
+    form.rent_price.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <button type="submit" class="btn btn-primary">
+    {{ form.submit.label.text }}
+  </button>
+  <a class="btn btn-secondary" href="{{ url_for('list_properties') }}"
+    >Cancel</a
+  >
+</form>
+{% endblock %}
