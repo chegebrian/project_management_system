@@ -1,0 +1,76 @@
+{% extends "base.html" %} {% block title %}{{ property.name }} - Real Estate
+Manager{% endblock %} {% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('list_properties') }}">Properties</a>
+    </li>
+    <li class="breadcrumb-item active">{{ property.name }}</li>
+  </ol>
+</nav>
+<h2 class="mb-3">{{ property.name }}</h2>
+<p class="text-muted">
+  {{ property.location }} · {{ property.property_type }} · KSH{{
+  '%.2f'|format(property.rent_price) }}/unit
+</p>
+<p>
+  <a
+    class="btn btn-outline-primary"
+    href="{{ url_for('edit_property', property_id=property.id) }}"
+    >Edit Property</a
+  >
+  <a
+    class="btn btn-primary"
+    href="{{ url_for('add_unit', property_id=property.id) }}"
+    >Add Unit</a
+  >
+</p>
+
+<h4 class="mt-4">Units</h4>
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Unit</th>
+        <th>Status</th>
+        <th>Tenant</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in units %}
+      <tr>
+        <td>{{ u.name }}</td>
+        <td>
+          {% if u.is_occupied %}<span class="badge bg-success">Occupied</span>{%
+          else %}<span class="badge bg-secondary">Vacant</span>{% endif %}
+        </td>
+        <td>{% if u.tenant %}{{ u.tenant.full_name }}{% else %}—{% endif %}</td>
+        <td>
+          <a
+            class="btn btn-sm btn-outline-primary"
+            href="{{ url_for('edit_unit', unit_id=u.id) }}"
+            >Edit</a
+          >
+          <form
+            method="post"
+            action="{{ url_for('delete_unit', unit_id=u.id) }}"
+            class="d-inline"
+            onsubmit="return confirm('Delete this unit?');"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" class="text-muted">No units. Add one above.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
