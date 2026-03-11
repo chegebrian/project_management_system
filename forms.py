@@ -146,3 +146,4 @@ class PaymentForm(FlaskForm):
     
     # Submit button to record payment
     submit = SubmitField("Record Payment")
+
