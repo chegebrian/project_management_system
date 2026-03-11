@@ -96,3 +96,40 @@ class Unit(db.Model):
     # - cascade="all, delete-orphan" ensures that if a Unit is deleted,
     #   all associated Payments are also deleted
     payments = db.relationship("Payment", back_populates="unit", cascade="all, delete-orphan")
+
+class Tenant(db.Model):
+    """
+    Represents a tenant who rents a unit within a property.
+    A tenant may occupy a unit and make multiple payments.
+    """
+    
+    # Primary key for the Tenant table
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Tenant's full name (required)
+    full_name = db.Column(db.String(128), nullable=False)
+    
+    # Tenant's email address (optional)
+    email = db.Column(db.String(120))
+    
+    # Tenant's phone number (optional)
+    phone = db.Column(db.String(50))
+    
+    # Date the tenant moved in; defaults to current date/time
+    move_in_date = db.Column(db.Date, default=datetime.utcnow)
+    
+    # Whether the tenant is currently active/occupying a unit
+    active = db.Column(db.Boolean, default=True)
+    
+    # Foreign key linking this tenant to their assigned Unit
+    unit_id = db.Column(db.Integer, db.ForeignKey("unit.id"))
+    
+    # One-to-one relationship to Unit
+    # - back_populates="tenant" allows bidirectional access (Unit.tenant ↔ Tenant.unit)
+    unit = db.relationship("Unit", back_populates="tenant")
+    
+    # One-to-many relationship to Payment
+    # - back_populates="tenant" allows Payment.tenant to access this tenant
+    # - cascade="all, delete-orphan" ensures that if a Tenant is deleted,
+    #   all associated Payments are also deleted
+    payments = db.relationship("Payment", back_populates="tenant", cascade="all, delete-orphan")
