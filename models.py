@@ -133,3 +133,60 @@ class Tenant(db.Model):
     # - cascade="all, delete-orphan" ensures that if a Tenant is deleted,
     #   all associated Payments are also deleted
     payments = db.relationship("Payment", back_populates="tenant", cascade="all, delete-orphan")
+
+
+# please note mpesa_checkout_request_id, mpesa_receipt_number and mpesa_phone are pending future improvement
+# payment will be done manually
+class Payment(db.Model):
+    """
+    Represents a payment made by a tenant for a specific unit within a property.
+    Supports both regular payments and M-Pesa STK push transactions.
+    """
+    
+    # Primary key for the Payment table
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Amount of the payment
+    amount = db.Column(db.Float, nullable=False)
+    
+    # Timestamp of when the payment was made; defaults to current UTC time
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Month for which the payment applies (1-12)
+    month = db.Column(db.Integer, nullable=False)
+    
+    # Year for which the payment applies (e.g., 2026)
+    year = db.Column(db.Integer, nullable=False)
+    
+    # Status of the payment: "completed", "pending", or "failed"
+    payment_status = db.Column(db.String(20), default="completed")
+    
+    # M-Pesa checkout request ID (if payment was via STK push)
+    mpesa_checkout_request_id = db.Column(db.String(50), unique=True, nullable=True)
+    
+    # M-Pesa receipt number returned after successful payment
+    mpesa_receipt_number = db.Column(db.String(50), nullable=True)
+    
+    # Phone number used for M-Pesa payment
+    mpesa_phone = db.Column(db.String(20), nullable=True)
+    
+    # Foreign key linking this payment to the tenant who made it
+    tenant_id = db.Column(db.Integer, db.ForeignKey("tenant.id"), nullable=False)
+    
+    # Relationship to Tenant
+    # - back_populates="payments" allows Tenant.payments ↔ Payment.tenant
+    tenant = db.relationship("Tenant", back_populates="payments")
+    
+    # Foreign key linking this payment to the unit it belongs to
+    unit_id = db.Column(db.Integer, db.ForeignKey("unit.id"), nullable=False)
+    
+    # Relationship to Unit
+    # - back_populates="payments" allows Unit.payments ↔ Payment.unit
+    unit = db.relationship("Unit", back_populates="payments")
+    
+    # Foreign key linking this payment to the property it belongs to
+    property_id = db.Column(db.Integer, db.ForeignKey("property.id"), nullable=False)
+    
+    # Relationship to Property
+    # - back_populates="payments" allows Property.payments ↔ Payment.property
+    property = db.relationship("Property", back_populates="payments")
