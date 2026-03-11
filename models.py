@@ -63,3 +63,36 @@ class Property(db.Model):
     # cascade="all, delete-orphan" ensures database integrity automatically.
     units = db.relationship("Unit", back_populates="property", cascade="all, delete-orphan")
     payments = db.relationship("Payment", back_populates="property", cascade="all, delete-orphan")
+
+class Unit(db.Model):
+    """
+    Represents a unit (apartment, office, etc.) within a property.
+    Each unit can have a tenant, belong to a property, and have multiple payments.
+    """
+    
+    # Primary key for the Unit table
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Name of the unit (e.g., "Unit 1", "Apt 101")
+    name = db.Column(db.String(64), nullable=False)
+    
+    # Indicates whether the unit is currently occupied by a tenant
+    is_occupied = db.Column(db.Boolean, default=False)
+    
+    # Foreign key linking this unit to its parent Property
+    property_id = db.Column(db.Integer, db.ForeignKey("property.id"), nullable=False)
+    
+    # ORM relationship to the Property model
+    # - back_populates="units" allows bidirectional access (Property.units ↔ Unit.property)
+    property = db.relationship("Property", back_populates="units")
+    
+    # One-to-one relationship to Tenant
+    # - A unit can have at most one active tenant
+    # - uselist=False ensures only a single Tenant object is returned, not a list
+    tenant = db.relationship("Tenant", back_populates="unit", uselist=False)
+    
+    # One-to-many relationship to Payment
+    # - back_populates="unit" allows Payment.unit to access this unit
+    # - cascade="all, delete-orphan" ensures that if a Unit is deleted,
+    #   all associated Payments are also deleted
+    payments = db.relationship("Payment", back_populates="unit", cascade="all, delete-orphan")
