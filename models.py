@@ -49,3 +49,17 @@ class User(UserMixin, db.Model):
                 bool: True if the password matches, False otherwise.
         """
         return check_password_hash(self.password_hash, password)
+    
+class Property(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    location = db.Column(db.String(255), nullable=False)
+    property_type = db.Column(db.String(50), nullable=False)
+    num_units = db.Column(db.Integer, nullable=False, default=0)
+    rent_price = db.Column(db.Float, nullable=False, default=0.0)
+
+    # Define a one-to-many relationship between Property and Unit.
+    # back_populates allows you to navigate the relationship from both sides (Property → Units, Unit → Property).
+    # cascade="all, delete-orphan" ensures database integrity automatically.
+    units = db.relationship("Unit", back_populates="property", cascade="all, delete-orphan")
+    payments = db.relationship("Payment", back_populates="property", cascade="all, delete-orphan")
