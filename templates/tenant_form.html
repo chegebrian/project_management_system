@@ -1,0 +1,45 @@
+{% extends "base.html" %} {% block title %}{{ title }} - Real Estate Manager{%
+endblock %} {% block content %}
+<h2 class="mb-4">{{ title }}</h2>
+<form method="post">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.full_name.label(class="form-label") }} {{
+    form.full_name(class="form-control") }} {% for error in
+    form.full_name.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.email.label(class="form-label") }} {{
+    form.email(class="form-control") }} {% for error in form.email.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.phone.label(class="form-label") }} {{
+    form.phone(class="form-control") }} {% for error in form.phone.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.move_in_date.label(class="form-label") }} {{
+    form.move_in_date(class="form-control") }} {% for error in
+    form.move_in_date.errors %}
+    <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.unit_id.label(class="form-label") }} {{
+    form.unit_id(class="form-select") }}
+  </div>
+  <div class="form-check mb-3">
+    {{ form.active(class="form-check-input") }} {{
+    form.active.label(class="form-check-label") }}
+  </div>
+  <button type="submit" class="btn btn-primary">
+    {{ form.submit.label.text }}
+  </button>
+  <a class="btn btn-secondary" href="{{ url_for('list_tenants') }}">Cancel</a>
+</form>
+{% endblock %}
